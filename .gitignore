@@ -1,9 +1,18 @@
-firecracker_env/rootfs.ext4
-firecracker_env/vmlinux
-firecracker_env/firecracker
-/tmp/fc_run_*
-*.ext4
+# Binarios y entornos del hipervisor Firecracker
+vmlinux.bin
+*.tgz
+firecracker_env/
+release-*/
+firecracker
+
+# Datasets temporales y de pruebas de estrés
+*.csv
+downloads/
+/tmp/
+
+# Logs y cachés de Python
+*.log
 __pycache__/
-*.pyc
-crucible_telemetry.jsonl
-sample_data/*.csv
+.pytest_cache/
+candidate.py
+test_candidate.py
