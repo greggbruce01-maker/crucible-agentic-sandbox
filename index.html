@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crucible Systems | Hardware-Isolated Sandboxes for AI Agents</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            bg: '#07080c',
+                            card: '#0d1017',
+                            border: '#1b2234',
+                            amber: '#f59e0b',
+                            flame: '#ff5500',
+                            emerald: '#10b981',
+                            cyan: '#06b6d4',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #07080c; color: #cbd5e1; }
+        .gradient-text {
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .amber-glow {
+            box-shadow: 0 0 30px -5px rgba(245, 158, 11, 0.15);
+        }
+        .scanline {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.3));
+            background-size: 100% 4px;
+        }
+    </style>
+</head>
+<body class="selection:bg-amber-500/30 selection:text-amber-300">
+
+    <!-- Top Navigation -->
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-[#07080c]/80 border-b border-[#1b2234]">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-black font-bold font-mono text-lg shadow-lg shadow-orange-500/20">
+                    C
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold text-white tracking-wider text-sm">CRUCIBLE SYSTEMS</span>
+                    <span class="text-[10px] text-amber-500 font-mono tracking-widest uppercase">Kernel Isolation Engine</span>
+                </div>
+            </div>
+            <nav class="hidden md:flex items-center gap-8 text-xs font-mono text-slate-400">
+                <a href="#demo-lab" class="hover:text-amber-400 transition-colors">CONTAINMENT LAB</a>
+                <a href="#architecture" class="hover:text-amber-400 transition-colors">ARCHITECTURE</a>
+                <a href="#roi-calculator" class="hover:text-amber-400 transition-colors">TCO CALCULATOR</a>
+                <a href="#pricing" class="hover:text-amber-400 transition-colors">TURNKEY DEPLOYMENT</a>
+            </nav>
+            <div class="flex items-center gap-4">
+                <a href="https://github.com/greggbruce01-maker/crucible-agentic-sandbox" target="_blank" class="text-xs font-mono px-3 py-1.5 rounded border border-[#1b2234] bg-[#0d1017] hover:border-amber-500/50 text-slate-300 hover:text-white flex items-center gap-2 transition-all">
+                    <i data-lucide="github" class="w-3.5 h-3.5"></i>
+                    <span>GitHub</span>
+                </a>
+                <a href="#pricing" class="text-xs font-mono font-semibold px-3 py-1.5 rounded bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-md shadow-amber-500/20">
+                    Deploy ($3.5k)
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative pt-24 pb-20 px-6 overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/10 via-transparent to-transparent pointer-events-none"></div>
+        <div class="max-w-5xl mx-auto text-center relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs font-mono mb-8">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>PRODUCTION HARDWARE ISOLATION (< 1.47s COLD BOOT)</span>
+            </div>
+            
+            <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight gradient-text mb-6 leading-tight">
+                Hardware-Isolated Sandboxes <br/>
+                <span class="text-white">for Autonomous AI Agents.</span>
+            </h1>
+            
+            <p class="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+                Standard Docker containers share the host Linux kernel. <strong class="text-slate-200 font-medium">Crucible-VM</strong> deploys disposable Firecracker microVMs in RAM with KVM hardware enforcement, eliminating container breakouts and noisy neighbors without external cloud APIs.
+            </p>
+
+            <div class="flex flex-wrap items-center justify-center gap-4">
+                <a href="#demo-lab" class="px-6 py-3 rounded bg-amber-500 hover:bg-amber-400 text-black font-semibold font-mono text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center gap-2">
+                    <i data-lucide="terminal" class="w-4 h-4"></i>
+                    <span>Launch Attack Lab</span>
+                </a>
+                <a href="https://github.com/greggbruce01-maker/crucible-agentic-sandbox/blob/main/DEMO.md" target="_blank" class="px-6 py-3 rounded border border-[#1b2234] bg-[#0d1017] hover:border-slate-600 text-slate-300 hover:text-white font-mono text-sm transition-all flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                    <span>Technical Demo (2 min)</span>
+                </a>
+            </div>
+
+            <!-- Key Metric Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 max-w-4xl mx-auto text-left">
+                <div class="p-4 rounded border border-[#1b2234] bg-[#0d1017]/50 backdrop-blur">
+                    <div class="text-[11px] font-mono text-slate-500 uppercase">Cold Boot Latency</div>
+                    <div class="text-2xl font-bold font-mono text-amber-400 mt-1">&lt; 1.47s</div>
+                    <div class="text-xs text-slate-400 mt-1">Boot, exec & teardown</div>
+                </div>
+                <div class="p-4 rounded border border-[#1b2234] bg-[#0d1017]/50 backdrop-blur">
+                    <div class="text-[11px] font-mono text-slate-500 uppercase">Throughput</div>
+                    <div class="text-2xl font-bold font-mono text-white mt-1">~34,000</div>
+                    <div class="text-xs text-slate-400 mt-1">Operations per second</div>
+                </div>
+                <div class="p-4 rounded border border-[#1b2234] bg-[#0d1017]/50 backdrop-blur">
+                    <div class="text-[11px] font-mono text-slate-500 uppercase">Isolation Model</div>
+                    <div class="text-2xl font-bold font-mono text-cyan-400 mt-1">KVM Jailer</div>
+                    <div class="text-xs text-slate-400 mt-1">Hardware virtualization</div>
+                </div>
+                <div class="p-4 rounded border border-[#1b2234] bg-[#0d1017]/50 backdrop-blur">
+                    <div class="text-[11px] font-mono text-slate-500 uppercase">Host Disk Leaks</div>
+                    <div class="text-2xl font-bold font-mono text-emerald-400 mt-1">0 Bytes</div>
+                    <div class="text-xs text-slate-400 mt-1">Strict tmpfs in RAM</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Attack Containment Lab -->
+    <section id="demo-lab" class="py-20 px-6 border-t border-[#1b2234] bg-[#050609]">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <span class="text-xs font-mono text-amber-500 uppercase tracking-wider">Interactive Test Chamber</span>
+                <h2 class="text-3xl font-bold text-white mt-2">Attack Containment Lab</h2>
+                <p class="text-sm text-slate-400 mt-2 max-w-xl mx-auto">
+                    Simulate real-world agent payloads and observe Crucible-VM’s hardware isolation, seccomp enforcement, and RAM teardown.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <!-- Payload Selector & Code -->
+                <div class="lg:col-span-6 bg-[#0d1017] border border-[#1b2234] rounded-lg overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-[#1b2234] bg-[#090b10]">
+                        <span class="text-xs font-mono text-slate-400 flex items-center gap-2">
+                            <i data-lucide="code" class="w-3.5 h-3.5 text-amber-500"></i>
+                            <span>Payload Selection</span>
+                        </span>
+                        <div class="flex gap-1.5">
+                            <button onclick="selectPayload('benign')" id="btn-benign" class="px-2.5 py-1 text-[11px] font-mono rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">ML Data Transform</button>
+                            <button onclick="selectPayload('escape')" id="btn-escape" class="px-2.5 py-1 text-[11px] font-mono rounded text-slate-400 hover:text-white border border-transparent">Breakout Probe</button>
+                            <button onclick="selectPayload('exhaust')" id="btn-exhaust" class="px-2.5 py-1 text-[11px] font-mono rounded text-slate-400 hover:text-white border border-transparent">Fork Bomb</button>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-[#07080c] font-mono text-xs text-slate-300 h-64 overflow-y-auto scanline" id="code-display">
+                        <pre id="code-content"></pre>
+                    </div>
+                    <div class="p-4 border-t border-[#1b2234] bg-[#090b10] flex items-center justify-between">
+                        <span class="text-xs font-mono text-slate-500">Target: /mnt/crucible-tmpfs (RAM)</span>
+                        <button onclick="runSimulation()" id="run-btn" class="px-4 py-2 rounded bg-amber-500 hover:bg-amber-400 text-black font-mono font-semibold text-xs flex items-center gap-2 transition-all shadow-md shadow-amber-500/20">
+                            <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                            <span>Execute in Crucible-VM</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Containment Console Output -->
+                <div class="lg:col-span-6 bg-[#0d1017] border border-[#1b2234] rounded-lg overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-[#1b2234] bg-[#090b10]">
+                        <span class="text-xs font-mono text-slate-400 flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            <span>Hypervisor Containment Telemetry</span>
+                        </span>
+                        <span id="telemetry-badge" class="px-2 py-0.5 text-[10px] font-mono rounded bg-slate-800 text-slate-400">STANDBY</span>
+                    </div>
+                    <div class="p-4 bg-[#07080c] font-mono text-xs text-slate-400 h-64 overflow-y-auto" id="console-output">
+                        <div class="text-slate-600">// Hypervisor ready. Select a scenario and press Execute.</div>
+                    </div>
+                    <div class="p-4 border-t border-[#1b2234] bg-[#090b10] flex items-center justify-between text-xs font-mono">
+                        <span class="text-slate-500">Status: <span id="telemetry-status" class="text-slate-400">IDLE</span></span>
+                        <span class="text-slate-500">Latency: <span id="telemetry-time" class="text-amber-400">-- ms</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture" class="py-20 px-6 border-t border-[#1b2234]">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="text-xs font-mono text-amber-500 uppercase tracking-wider">Low-Level Engineering</span>
+                <h2 class="text-3xl font-bold text-white mt-2">Zero-Trust Compute Lifecycle</h2>
+                <p class="text-sm text-slate-400 mt-2 max-w-xl mx-auto">
+                    Every untrusted Python script runs in a microsecond-born virtual machine, executed exclusively in RAM and destroyed upon completion.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="p-6 rounded-lg border border-[#1b2234] bg-[#0d1017]">
+                    <div class="w-10 h-10 rounded bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4">
+                        <i data-lucide="cpu" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-2">1. Hardware Virtualization (KVM)</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Unlike Docker containers which share the host kernel, Crucible-VM runs inside a separate guest Linux kernel via <code class="text-cyan-300">/dev/kvm</code>. Host kernel privilege escalation exploits fail by design.
+                    </p>
+                </div>
+                <div class="p-6 rounded-lg border border-[#1b2234] bg-[#0d1017]">
+                    <div class="w-10 h-10 rounded bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-4">
+                        <i data-lucide="hard-drive" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-2">2. RAM Storage (<code class="text-amber-400 font-mono">tmpfs</code>)</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        The root filesystem and execution workspace reside strictly in memory. MicroVM disk operations execute at RAM speeds with zero host disk writes, preventing persistence of malware or state poisoning.
+                    </p>
+                </div>
+                <div class="p-6 rounded-lg border border-[#1b2234] bg-[#0d1017]">
+                    <div class="w-10 h-10 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4">
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-2">3. Sub-Second Self-Destruction</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Upon script termination or execution timeout, the hypervisor process terminates instantly. The RAM partition is unmapped and sanitized in under 20 milliseconds, leaving zero leftover artifacts.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TCO ROI Calculator -->
+    <section id="roi-calculator" class="py-20 px-6 border-t border-[#1b2234] bg-[#050609]">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <span class="text-xs font-mono text-amber-500 uppercase tracking-wider">Predictable Infrastructure Economics</span>
+                <h2 class="text-3xl font-bold text-white mt-2">Annual TCO & Security Savings Calculator</h2>
+                <p class="text-sm text-slate-400 mt-2">
+                    Compare self-hosted bare-metal Crucible-VM against in-house engineering and metered third-party cloud sandbox APIs.
+                </p>
+            </div>
+
+            <div class="p-8 rounded-xl border border-[#1b2234] bg-[#0d1017] shadow-xl">
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex justify-between text-xs font-mono mb-2">
+                            <span class="text-slate-300">Monthly Code Executions</span>
+                            <span class="text-amber-400 font-bold" id="exec-display">500,000 runs</span>
+                        </div>
+                        <input type="range" id="exec-slider" min="50000" max="2500000" step="50000" value="500000" 
+                            class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500" oninput="updateCalculator()">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-[#1b2234] text-center">
+                        <div class="p-4 rounded border border-red-500/20 bg-red-500/5">
+                            <div class="text-[11px] font-mono text-slate-400 uppercase">In-House Engineering</div>
+                            <div class="text-xl font-bold font-mono text-red-400 mt-1" id="cost-inhouse">$185,000</div>
+                            <div class="text-[10px] text-slate-500 mt-1">1 Senior Infra FTE ($180k) + Maint.</div>
+                        </div>
+                        <div class="p-4 rounded border border-orange-500/20 bg-orange-500/5">
+                            <div class="text-[11px] font-mono text-slate-400 uppercase">Metered Cloud Sandboxes</div>
+                            <div class="text-xl font-bold font-mono text-orange-400 mt-1" id="cost-metered">$36,000 / yr</div>
+                            <div class="text-[10px] text-slate-500 mt-1">Third-party variable per-second API</div>
+                        </div>
+                        <div class="p-4 rounded border border-emerald-500/30 bg-emerald-500/10">
+                            <div class="text-[11px] font-mono text-emerald-400 font-bold uppercase">Crucible-VM (Turnkey)</div>
+                            <div class="text-xl font-bold font-mono text-emerald-300 mt-1" id="cost-crucible">$15,500 / yr</div>
+                            <div class="text-[10px] text-emerald-500 mt-1">$3.5k setup + $1k/mo flat retainer</div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
+                        <span class="text-xs font-mono text-amber-300">Projected Year 1 Capital Savings:</span>
+                        <span class="text-base font-bold font-mono text-white" id="cost-savings">$169,500 USD</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Turnkey Pricing & SOW Agreement Section -->
+    <section id="pricing" class="py-20 px-6 border-t border-[#1b2234]">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <span class="text-xs font-mono text-amber-500 uppercase tracking-wider">Transparent Commercial Engagement</span>
+                <h2 class="text-3xl font-bold text-white mt-2">Turnkey Setup & Retainer SLA</h2>
+                <p class="text-sm text-slate-400 mt-2">
+                    Deploys directly on your own AWS bare-metal, Hetzner, or Equinix Metal instances during a single weekend window.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Turnkey Setup -->
+                <div class="p-8 rounded-xl border border-amber-500/40 bg-[#0d1017] relative amber-glow">
+                    <div class="text-xs font-mono text-amber-400 uppercase tracking-wider font-semibold">One-Time Implementation</div>
+                    <h3 class="text-2xl font-bold text-white mt-1">Turnkey Setup</h3>
+                    <div class="my-6">
+                        <span class="text-4xl font-extrabold text-white font-mono">$3,500</span>
+                        <span class="text-xs font-mono text-slate-400 ml-2">USD (Flat fee)</span>
+                    </div>
+                    <ul class="space-y-3 text-xs text-slate-300 mb-8 font-mono">
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> Full Firecracker & KVM provisioning</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> tmpfs RAM-backed ephemeral rootfs</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> FastAPI execution gateway + systemd daemon</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> Attack containment verification run</li>
+                        <li class="flex items-center gap-2 text-slate-400"><i data-lucide="clock" class="w-4 h-4 text-amber-400"></i> Single weekend turnaround (Saturday)</li>
+                    </ul>
+                    <a href="https://github.com/greggbruce01-maker/crucible-agentic-sandbox/blob/main/SOW.md" target="_blank" class="w-full py-3 rounded bg-amber-500 hover:bg-amber-400 text-black font-semibold font-mono text-xs flex items-center justify-center gap-2 transition-all">
+                        <i data-lucide="file-check" class="w-4 h-4"></i>
+                        <span>View Official SOW Agreement</span>
+                    </a>
+                </div>
+
+                <!-- Monthly Engineering Retainer -->
+                <div class="p-8 rounded-xl border border-[#1b2234] bg-[#0d1017]">
+                    <div class="text-xs font-mono text-slate-400 uppercase tracking-wider">Continuous Engineering</div>
+                    <h3 class="text-2xl font-bold text-white mt-1">Platform Retainer</h3>
+                    <div class="my-6">
+                        <span class="text-4xl font-extrabold text-white font-mono">$1,000</span>
+                        <span class="text-xs font-mono text-slate-400 ml-2">USD / month</span>
+                    </div>
+                    <ul class="space-y-3 text-xs text-slate-300 mb-8 font-mono">
+                        <li class="flex items-center gap-2"><i data-lucide="shield" class="w-4 h-4 text-cyan-400"></i> Weekly guest kernel CVE security patching</li>
+                        <li class="flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-cyan-400"></i> Memory footprint and latency tuning</li>
+                        <li class="flex items-center gap-2"><i data-lucide="life-buoy" class="w-4 h-4 text-cyan-400"></i> Dedicated Saturday maintenance window</li>
+                        <li class="flex items-center gap-2"><i data-lucide="mail" class="w-4 h-4 text-cyan-400"></i> Asynchronous architecture advisory</li>
+                        <li class="flex items-center gap-2 text-slate-400"><i data-lucide="slash" class="w-4 h-4 text-slate-500"></i> No long-term lock-in (cancel anytime)</li>
+                    </ul>
+                    <a href="mailto:gregg@cruciblesystems.io?subject=Crucible-VM%20Implementation%20Inquiry" class="w-full py-3 rounded border border-[#1b2234] bg-[#121622] hover:border-slate-500 text-slate-300 hover:text-white font-mono text-xs flex items-center justify-center gap-2 transition-all">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                        <span>Schedule Implementation</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 px-6 border-t border-[#1b2234] bg-[#050609] text-xs font-mono text-slate-500">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded bg-amber-500 flex items-center justify-center text-black font-bold font-mono text-xs">C</div>
+                <span class="text-slate-300 font-semibold">Crucible Systems</span>
+                <span class="text-slate-600">| Ephemeral Hardware Isolation for Agentic AI</span>
+            </div>
+            <div>
+                Founder & Systems Architect: <span class="text-slate-300">Gregg Bruce</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="https://github.com/greggbruce01-maker/crucible-agentic-sandbox" target="_blank" class="hover:text-amber-400">Repository</a>
+                <a href="https://github.com/greggbruce01-maker/crucible-agentic-sandbox/blob/main/DEMO.md" target="_blank" class="hover:text-amber-400">DEMO.md</a>
+                <a href="https://github.com/greggbruce01-maker/crucible-agentic-sandbox/blob/main/SOW.md" target="_blank" class="hover:text-amber-400">SOW.md</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Client-side Script -->
+    <script>
+        lucide.createIcons();
+
+        const payloads = {
+            benign: {
+                title: "ML Data Transformation",
+                code: `import pandas as pd
+import numpy as np
+
+# Safe user data synthesis routine
+df = pd.DataFrame({
+    'timestamp': pd.date_range('2026-01-01', periods=1000, freq='H'),
+    'telemetry': np.random.normal(50, 15, 1000)
+})
+rolling_avg = df['telemetry'].rolling(24).mean()
+print(f"Data transform complete. Records processed: {len(df)}")`,
+                logs: [
+                    "[0.000s] Ingestion: Authenticated POST /execute received.",
+                    "[0.120s] Hypervisor: Spawning Firecracker microVM instance (KVM).",
+                    "[0.340s] Mounting ephemeral tmpfs (RAM partition, size=2GB).",
+                    "[0.810s] Execution: Guest Linux kernel running Pandas transform.",
+                    "[1.120s] Process completed: 1,000 records computed.",
+                    "[1.140s] Sandbox teardown: tmpfs partition wiped from RAM.",
+                    "[✓] Status: CONTAINED | Latency: 1,140 ms | Exit Code: 0"
+                ],
+                time: 1140,
+                status: "CONTAINED"
+            },
+            escape: {
+                title: "Malicious Breakout Probe",
+                code: `import os, sys
+
+# Host escape probe attempted by untrusted script
+print("[*] Probing host filesystem access...")
+try:
+    with open('/proc/version', 'r') as f:
+        print("Guest Kernel:", f.read().strip())
+    # Attempting to read outside microVM sandbox boundary
+    os.listdir('/host_root')
+except Exception as e:
+    print(f"[SECURITY REJECTION] Host access forbidden: {e}")`,
+                logs: [
+                    "[0.000s] Ingestion: Authenticated POST /execute received.",
+                    "[0.090s] Hypervisor: Spawning Firecracker microVM instance (KVM).",
+                    "[0.180s] Seccomp filter active: Syscall filtering strictly enforced.",
+                    "[0.550s] Probe detected: Attempt to read '/host_root'.",
+                    "[0.560s] [BLOCKED] Seccomp / Hardware boundary denied syscall.",
+                    "[0.610s] Isolation maintained: Host filesystem inaccessible.",
+                    "[0.630s] Immediate hypervisor shutdown and RAM purge complete.",
+                    "[✓] Status: CONTAINED (BLOCKED) | Latency: 630 ms | Boundary: GUEST_KERNEL_ONLY"
+                ],
+                time: 630,
+                status: "ATTACK BLOCKED"
+            },
+            exhaust: {
+                title: "Memory Saturation / Fork Bomb",
+                code: `import os
+
+# Malicious resource exhaustion probe
+print("[*] Attempting infinite process spawning...")
+try:
+    while True:
+        os.fork()
+except OSError as e:
+    print(f"[CONTAINED] Process limit capped by jailer: {e}")`,
+                logs: [
+                    "[0.000s] Ingestion: Authenticated POST /execute received.",
+                    "[0.110s] Spawning Firecracker microVM in isolated cgroup.",
+                    "[0.320s] Fork limit reached: Jailer PID quota clamped (LimitNOFILE=65535).",
+                    "[0.410s] Host memory impact: 0% (Protected by host cgroups).",
+                    "[0.480s] Ephemeral sandbox terminated by watchdog timeout.",
+                    "[0.500s] RAM cleaned in tmpfs. Zero noisy-neighbor spillover.",
+                    "[✓] Status: CONTAINED | Latency: 500 ms | Resource Spillage: 0 Bytes"
+                ],
+                time: 500,
+                status: "MITIGATED"
+            }
+        };
+
+        let currentPayload = 'benign';
+
+        function selectPayload(type) {
+            currentPayload = type;
+            document.getElementById('code-content').textContent = payloads[type].code;
+            
+            ['benign', 'escape', 'exhaust'].forEach(k => {
+                const btn = document.getElementById('btn-' + k);
+                if (k === type) {
+                    btn.className = "px-2.5 py-1 text-[11px] font-mono rounded bg-amber-500/20 text-amber-300 border border-amber-500/40";
+                } else {
+                    btn.className = "px-2.5 py-1 text-[11px] font-mono rounded text-slate-400 hover:text-white border border-transparent";
+                }
+            });
+
+            document.getElementById('console-output').innerHTML = `<div class="text-slate-600">// Ready to execute scenario: ${payloads[type].title}. Press Run.</div>`;
+            document.getElementById('telemetry-badge').textContent = "STANDBY";
+            document.getElementById('telemetry-badge').className = "px-2 py-0.5 text-[10px] font-mono rounded bg-slate-800 text-slate-400";
+            document.getElementById('telemetry-status').textContent = "IDLE";
+            document.getElementById('telemetry-time').textContent = "-- ms";
+        }
+
+        function runSimulation() {
+            const data = payloads[currentPayload];
+            const consoleEl = document.getElementById('console-output');
+            const runBtn = document.getElementById('run-btn');
+            
+            runBtn.disabled = true;
+            runBtn.classList.add('opacity-50');
+            consoleEl.innerHTML = '';
+            
+            document.getElementById('telemetry-badge').textContent = "EXECUTING";
+            document.getElementById('telemetry-badge').className = "px-2 py-0.5 text-[10px] font-mono rounded bg-amber-500/20 text-amber-300 animate-pulse";
+            document.getElementById('telemetry-status').textContent = "ACTIVE";
+
+            data.logs.forEach((line, index) => {
+                setTimeout(() => {
+                    const p = document.createElement('div');
+                    p.className = index === data.logs.length - 1 ? "text-emerald-400 font-bold mt-2" : "text-slate-300 leading-relaxed";
+                    p.textContent = line;
+                    consoleEl.appendChild(p);
+                    consoleEl.scrollTop = consoleEl.scrollHeight;
+
+                    if (index === data.logs.length - 1) {
+                        runBtn.disabled = false;
+                        runBtn.classList.remove('opacity-50');
+                        document.getElementById('telemetry-badge').textContent = "CONTAINED";
+                        document.getElementById('telemetry-badge').className = "px-2 py-0.5 text-[10px] font-mono rounded bg-emerald-500/20 text-emerald-300";
+                        document.getElementById('telemetry-status').textContent = data.status;
+                        document.getElementById('telemetry-time').textContent = data.time + " ms";
+                    }
+                }, index * 180);
+            });
+        }
+
+        function updateCalculator() {
+            const runs = parseInt(document.getElementById('exec-slider').value);
+            document.getElementById('exec-display').textContent = runs.toLocaleString() + ' runs';
+
+            const inhouseCost = 185000;
+            const meteredCost = Math.round((runs * 12 * 0.006));
+            const crucibleCost = 3500 + (1000 * 12);
+            const savings = inhouseCost - crucibleCost;
+
+            document.getElementById('cost-inhouse').textContent = '$' + inhouseCost.toLocaleString();
+            document.getElementById('cost-metered').textContent = '$' + meteredCost.toLocaleString() + ' / yr';
+            document.getElementById('cost-crucible').textContent = '$' + crucibleCost.toLocaleString() + ' / yr';
+            document.getElementById('cost-savings').textContent = '$' + savings.toLocaleString() + ' USD';
+        }
+
+        // Initialize view
+        selectPayload('benign');
+        updateCalculator();
+    </script>
+</body>
+</html>
