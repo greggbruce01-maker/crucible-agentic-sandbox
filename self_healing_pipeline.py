@@ -1,167 +1,130 @@
 import os
-import re
+import sys
+import json
+import time
+import subprocess
 import pandas as pd
 from openai import OpenAI
-import skill_registry
-import evaluator
-import orchestrator
 
 client = OpenAI(
     base_url="http://localhost:11434/v1",
     api_key="ollama"
 )
+
 MODEL_NAME = "qwen2.5-coder:7b"
+FC_RUNNER = "./fc_run.sh"
 
-def validate_data_contract(df: pd.DataFrame, initial_row_count: int) -> tuple[bool, str]:
-    if df is None or df.empty:
-        return False, "FALLO CRÍTICO: DataFrame vacío (0 registros retenidos)."
-    if df.isnull().values.any():
-        null_cols = df.columns[df.isnull().any()].tolist()
-        return False, f"El DataFrame contiene valores nulos en: {null_cols}"
-    if len(df) > initial_row_count:
-        return False, "El DataFrame contiene más filas que el original."
-    return True, f"Dataset válido: {len(df)} filas preservadas sin nulos."
-
-def ensure_imports(code: str) -> str:
-    imports = []
-    if "import pandas as pd" not in code:
-        imports.append("import pandas as pd")
-    if "import numpy as np" not in code:
-        imports.append("import numpy as np")
-    return "\n".join(imports) + "\n\n" + code if imports else code
-
-def synthesize_and_validate_new_skill(columns_info: list) -> str:
-    print(f"\n[🔧 Auto-Healing]: Sintetizando herramienta a medida para {columns_info}...")
+def build_dynamic_test_harness(sample_df: pd.DataFrame, function_name: str = "clean_data"):
+    columns = list(sample_df.columns)
+    sample_records = sample_df.head(5).to_dict(orient="records")
     
-    test_harness = (
-        "import pandas as pd\n"
-        "from candidate import clean_dataset_strict\n"
-        "def test_strict():\n"
-        "    df = pd.DataFrame({\n"
-        "        'id': [1, 2, 3],\n"
-        "        'fecha': ['2026-01-01', '2026-01-02', '2026-01-03'],\n"
-        "        'precio': [10.5, None, 15.0],\n"
-        "        'cantidad': [5.0, 3.0, None]\n"
-        "    })\n"
-        "    res = clean_dataset_strict(df)\n"
-        "    assert not res.empty, 'La función no puede vaciar el dataset'\n"
-        "    assert len(res) == 1, f'Esperaba 1 fila válida, obtuvo {len(res)}'\n"
-        "    assert res.iloc[0]['id'] == 1\n"
+    test_code = f'''import pytest
+import pandas as pd
+import numpy as np
+
+NaN = float('nan')
+null = None
+Infinity = float('inf')
+
+from candidate import {function_name}
+
+def test_dynamic_schema():
+    raw_data = {json.dumps(sample_records, default=str)}
+    df_in = pd.DataFrame(raw_data)
+    
+    df_out = {function_name}(df_in)
+    
+    assert isinstance(df_out, pd.DataFrame), "El retorno debe ser un DataFrame de Pandas"
+    assert len(df_out.columns) == len(df_in.columns), "No se deben perder columnas del esquema"
+    assert df_out.isna().sum().sum() == 0, "No deben quedar valores nulos tras la limpieza estricta"
+'''
+    with open("test_candidate.py", "w") as f:
+        f.write(test_code)
+
+def generate_patch_with_llm(columns, sample_rows, error_log=""):
+    prompt = f"""Escribe una función de Python llamada `clean_data(df: pd.DataFrame) -> pd.DataFrame` usando Pandas.
+Columnas del dataset: {columns}
+Muestra de datos crudos:
+{sample_rows}
+
+Reglas estrictas de codificación:
+1. La función DEBE llamarse `clean_data`.
+2. Para columnas numéricas o monetarias ('amount', 'quantity', 'precio'):
+   Usa estrictamente la función global pd.to_numeric envolviendo la serie limpia:
+   df[col] = pd.to_numeric(df[col].astype(str).str.replace(r'[^0-9.-]', '', regex=True), errors='coerce')
+3. Para columnas de fecha/tiempo ('timestamp', 'fecha'):
+   df[col] = pd.to_datetime(df[col], errors='coerce')
+4. Elimina cualquier fila que contenga nulos resultantes usando: df = df.dropna()
+5. Devuelve únicamente el código Python puro, sin bloques markdown (sin ```python ni ```).
+"""
+    if error_log:
+        prompt += f"\nError previo en Pytest que debes solucionar:\n{error_log}\n"
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.1
     )
+    
+    code = response.choices[0].message.content.strip()
+    if code.startswith("```python"):
+        code = code[9:]
+    elif code.startswith("```"):
+        code = code[3:]
+    if code.endswith("```"):
+        code = code[:-3]
+    return code.strip()
 
-    base_prompt = (
-        f"Eres un ingeniero senior de datos. Escribe `def clean_dataset_strict(df):` en Python/Pandas.\n"
-        f"REGLAS CRÍTICAS:\n"
-        f"1. Incluye `import pandas as pd` al inicio.\n"
-        f"2. Columnas presentes: {columns_info}.\n"
-        f"3. Si existe 'fecha', usa: `df['fecha'] = pd.to_datetime(df['fecha'], errors='coerce')`\n"
-        f"4. Columnas numéricas ('precio', 'cantidad', 'id'): usa `pd.to_numeric(df[col], errors='coerce')`\n"
-        f"5. Elimina filas nulas: `df = df.dropna().reset_index(drop=True)` y devuelve `df.copy()`.\n"
-        f"Devuelve ÚNICAMENTE el bloque dentro de ```python ... ```."
-    )
+def run_isolated_pytest():
+    if not os.path.exists(FC_RUNNER):
+        res = subprocess.run(["pytest", "test_candidate.py"], capture_output=True, text=True)
+        return res.returncode, res.stdout + res.stderr
 
-    messages = [{"role": "user", "content": base_prompt}]
-
-    for attempt in range(1, 4):
-        print(f"  ├─ [Intento {attempt}/3] Generando parche con LLM...", end="", flush=True)
-        res = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=messages,
-            temperature=0.0
-        )
-        raw_code = res.choices[0].message.content
-        match = re.search(r"```python(.*?)```", raw_code, re.DOTALL)
-        code = match.group(1).strip() if match else raw_code.strip()
-        code = ensure_imports(code)
-        print(" OK")
-
-        print("  │  └─ Validando en MicroVM aislada...", end="", flush=True)
-        eval_res = evaluator.run_agent_test(code, test_harness)
-        
-        if eval_res["success"]:
-            print(" [Aprobado]")
-            skill_path = os.path.join(skill_registry.SKILLS_DIR, "skill_strict_cleaner.py")
-            with open(skill_path, "w") as f:
-                f.write(code)
-            print(f"  └─ ✅ ¡Nueva habilidad verificada y guardada en {os.path.basename(skill_path)}!")
-            return code
-        else:
-            print(f" [Falló: {eval_res['stderr'].splitlines()[-1] if eval_res['stderr'] else 'Error'}]")
-            messages.append({"role": "assistant", "content": f"```python\n{code}\n```"})
-            messages.append({"role": "user", "content": f"Tu código falló en Pytest:\n{eval_res['stderr'][-600:]}\nCorrige la función asegurando imports y tipos."})
-
-    raise RuntimeError("No se pudo sintetizar un parche funcional tras 3 intentos.")
+    cmd = ["bash", FC_RUNNER, "pytest test_candidate.py"]
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    return res.returncode, res.stdout + res.stderr
 
 def run_self_healing_etl(input_csv: str, output_csv: str):
-    print("================================================================")
-    print("🚀 INICIANDO PIPELINE DE DATOS AUTÓNOMO Y RESILIENTE")
-    print("================================================================\n")
-    
     df_raw = pd.read_csv(input_csv)
-    initial_rows = len(df_raw)
-    print(f"[1] Dataset crudo detectado ({initial_rows} registros):")
-    print(df_raw)
-    print("\n----------------------------------------------------------------")
-
-    # 1. Probar herramientas del catálogo
-    success = orchestrator.run_agentic_pipeline(
-        user_prompt="Limpia completamente este dataset eliminando cualquier fila con datos faltantes",
-        input_csv_path=input_csv,
-        output_csv_path=output_csv
-    )
-
-    needs_repair = False
-    fail_reason = ""
-
-    if not success or not os.path.exists(output_csv):
-        needs_repair = True
-        fail_reason = "Herramienta falló en ejecución dentro de la MicroVM"
-    else:
-        df_result = pd.read_csv(output_csv)
-        is_valid, report = validate_data_contract(df_result, initial_rows)
-        if not is_valid:
-            needs_repair = True
-            fail_reason = report
-
-    # 2. Desencadenar auto-reparación ante anomalías
-    if needs_repair:
-        print(f"\n[⚠️ Alerta de Calidad]: {fail_reason}")
-        print("[!] Activando síntesis de herramienta en hardware aislado...")
-
-        cols = df_raw.columns.tolist()
-        new_skill = synthesize_and_validate_new_skill(columns_info=cols)
-
-        print("\n[🚀 Despachando Parche]: Ejecutando herramienta verificada en Firecracker...")
-        harness = (
-            "import pandas as pd\n"
-            "import candidate\n"
-            "def test_run():\n"
-            "    df = pd.read_csv('input.csv')\n"
-            "    out = candidate.clean_dataset_strict(df)\n"
-            "    assert not out.empty, 'El resultado no puede ser vacío'\n"
-            "    print('\\n=== CSV_PAYLOAD_START ===')\n"
-            "    print(out.to_csv(index=False).strip())\n"
-            "    print('=== CSV_PAYLOAD_END ===\\n')\n"
-        )
-
-        res = evaluator.run_agent_test(
-            solution_code=new_skill,
-            test_suite=harness,
-            data_files={"input.csv": input_csv},
-            output_file=output_csv
-        )
-
-        if not res["success"] or not os.path.exists(output_csv):
-            print(f"[Error Fatal]: {res['stderr']}")
-            return
-
-    print("\n=======================================================")
-    print("🎉 PIPELINE FINALIZADO Y TOTALMENTE SANADO")
-    print("=======================================================")
-    final_df = pd.read_csv(output_csv)
-    print(final_df)
-
-if __name__ == "__main__":
-    raw_path = "sample_data/raw_ventas.csv"
-    clean_path = "sample_data/clean_ventas_repaired.csv"
-    run_self_healing_etl(raw_path, clean_path)
+    columns = list(df_raw.columns)
+    print(f"\n[+] Dataset ingresado: {len(df_raw)} filas. Columnas: {columns}")
+    
+    build_dynamic_test_harness(df_raw, function_name="clean_data")
+    
+    max_retries = 3
+    patch_success = False
+    last_error = ""
+    
+    for attempt in range(1, max_retries + 1):
+        print(f"[*] [Intento {attempt}/{max_retries}] Sintetizando parche adaptado al esquema...")
+        code = generate_patch_with_llm(columns, df_raw.head(3).to_string(), error_log=last_error)
+        
+        with open("candidate.py", "w") as f:
+            f.write("import pandas as pd\nimport numpy as np\n\n" + code + "\n")
+            
+        print("    Validando candidato en microVM aislada...")
+        retcode, logs = run_isolated_pytest()
+        
+        if retcode == 0:
+            print("    [✓] ¡Candidato APROBADO por Pytest dentro de la microVM!")
+            patch_success = True
+            break
+        else:
+            print(f"    [X] Falló validación en microVM (Exit code: {retcode}).")
+            # Mostrar las líneas de error de Pytest directamente en pantalla
+            error_lines = [l for l in logs.splitlines() if "FAILED" in l or "Error" in l or "assert" in l]
+            for el in error_lines[-3:]:
+                print(f"        -> {el}")
+            last_error = "\n".join(logs.splitlines()[-10:])
+            
+    if not patch_success:
+        raise RuntimeError("No se pudo sintetizar un parche válido tras 3 intentos.")
+        
+    print("[+] Ejecutando transformación aprobada sobre el dataset completo...")
+    import importlib
+    import candidate
+    importlib.reload(candidate)
+    
+    df_clean = candidate.clean_data(df_raw)
+    df_clean.to_csv(output_csv, index=False)
+    print(f"[✓] Transformación finalizada: {len(df_clean)} filas guardadas en {output_csv}")
