@@ -1,0 +1,9 @@
+firecracker_env/rootfs.ext4
+firecracker_env/vmlinux
+firecracker_env/firecracker
+/tmp/fc_run_*
+*.ext4
+__pycache__/
+*.pyc
+crucible_telemetry.jsonl
+sample_data/*.csv
