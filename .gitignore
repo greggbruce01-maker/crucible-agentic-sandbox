@@ -16,3 +16,8 @@ __pycache__/
 .pytest_cache/
 candidate.py
 test_candidate.py
+
+*.ext4
+*.img
+.venv/
+__pycache__/
